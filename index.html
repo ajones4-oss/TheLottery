@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Lottery - Interactive Gist Graphic Organizer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    body {
+      font-family: 'Lexend', sans-serif;
+      background-color: #f1f5f9;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .drop-zone {
+      min-height: 100px;
+      transition: all 0.2s ease;
+    }
+    .drop-zone.drag-over {
+      background-color: #fef08a !important;
+      border-color: #ca8a04 !important;
+    }
+    .drag-tile {
+      touch-action: none;
+      cursor: grab;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .drag-tile:active {
+      cursor: grabbing;
+      transform: scale(1.04);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+    }
+    .drag-tile.placed {
+      background-color: #dcfce7 !important;
+      border-color: #16a34a !important;
+      color: #15803d !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-900 p-4 sm:p-6 flex flex-col justify-between max-w-7xl mx-auto">
+
+  <!-- Header & Control Bar -->
+  <header class="mb-4 flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-xl shadow-sm border border-slate-300">
+    <div class="flex items-center gap-3">
+      <i class="fa-solid fa-square-poll-vertical text-2xl text-blue-600"></i>
+      <h1 class="text-xl font-bold text-slate-800">"The Lottery" Gist Graphic Organizer</h1>
+    </div>
+    <div class="flex items-center gap-3">
+      <button id="reset-btn" class="px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold border border-slate-300 text-sm transition flex items-center gap-2">
+        <i class="fa-solid fa-rotate-left"></i> Reset Worksheet
+      </button>
+      <button id="check-btn" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm shadow-md transition flex items-center gap-2">
+        <i class="fa-solid fa-circle-check"></i> Check My Gist!
+      </button>
+    </div>
+  </header>
+
+  <!-- Tile Bank -->
+  <section class="bg-amber-50 rounded-xl p-4 border-2 border-amber-300 mb-6 shadow-sm">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-sm font-bold uppercase tracking-wider text-amber-900 flex items-center gap-2">
+        <i class="fa-solid fa-layer-group text-amber-600"></i> Word Bank (Drag tiles or click to place)
+      </h2>
+      <span class="text-xs font-semibold text-amber-800 bg-amber-200 px-2.5 py-1 rounded-md">Touchscreen Ready</span>
+    </div>
+    <div id="tile-bank" class="flex flex-wrap gap-2.5 min-h-[75px] p-3 bg-white rounded-lg border border-amber-200 items-center">
+      <!-- Dynamic Word Tiles inserted here -->
+    </div>
+  </section>
+
+  <!-- GRAPHIC ORGANIZER WORKSHEET CONTAINER -->
+  <main class="bg-white border-2 border-slate-800 rounded-lg p-6 shadow-xl flex flex-col gap-6">
+
+    <!-- Title Header -->
+    <div class="border-b-2 border-slate-800 pb-3">
+      <h2 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+        P1: Pre-read for the Gist
+      </h2>
+    </div>
+
+    <!-- SINGLE ROW 6-COLUMN TABLE WITH SPANNING HEADER -->
+    <div class="border-2 border-slate-800 rounded-md overflow-hidden bg-slate-800 flex flex-col gap-[2px]">
+      
+      <!-- Spanning "Why/What Happened?" Header for Columns 4, 5, 6 -->
+      <div class="grid grid-cols-1 md:grid-cols-6 bg-slate-800 gap-[2px]">
+        <div class="hidden md:block col-span-3 bg-slate-200"></div>
+        <div class="col-span-1 md:col-span-3 bg-amber-100 text-amber-950 font-black text-center py-2 px-3 text-sm md:text-base border-b md:border-b-0 border-slate-800 flex items-center justify-center gap-2 tracking-wide uppercase">
+          <i class="fa-solid fa-circle-question text-amber-700"></i> Why / What Happened?
+        </div>
+      </div>
+
+      <!-- 6 COLUMNS SIDE-BY-SIDE IN ONE SINGLE ROW -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 bg-slate-800 gap-[2px]">
+        
+        <!-- Column 1: Who? -->
+        <div class="bg-white flex flex-col">
+          <div class="bg-slate-100 font-extrabold text-slate-900 text-sm md:text-base border-b border-slate-800 p-2.5 text-center">
+            Who?
+          </div>
+          <div data-slot="who1" class="drop-zone p-2.5 flex-grow bg-slate-50 border-dashed border-2 border-slate-300 m-2 rounded flex flex-col items-center justify-center text-center">
+            <span class="drop-hint text-xs font-medium text-slate-400">Drop Who?</span>
+          </div>
+        </div>
+
+        <!-- Column 2: Did what? -->
+        <div class="bg-white flex flex-col">
+          <div class="bg-slate-100 font-extrabold text-slate-900 text-sm md:text-base border-b border-slate-800 p-2.5 text-center">
+            Did what?
+          </div>
+          <div data-slot="didWhat1" class="drop-zone p-2.5 flex-grow bg-slate-50 border-dashed border-2 border-slate-300 m-2 rounded flex flex-col items-center justify-center text-center">
+            <span class="drop-hint text-xs font-medium text-slate-400">Drop Did what?</span>
+          </div>
+        </div>
+
+        <!-- Column 3: When/where? -->
+        <div class="bg-white flex flex-col">
+          <div class="bg-slate-100 font-extrabold text-slate-900 text-sm md:text-base border-b border-slate-800 p-2.5 text-center">
+            When/where?
+          </div>
+          <div data-slot="whenWhere" class="drop-zone p-2.5 flex-grow bg-slate-50 border-dashed border-2 border-slate-300 m-2 rounded flex flex-col items-center justify-center text-center">
+            <span class="drop-hint text-xs font-medium text-slate-400">Drop When/where?</span>
+          </div>
+        </div>
+
+        <!-- Column 4: Joiner -->
+        <div class="bg-amber-50/60 flex flex-col border-t-2 md:border-t-0 border-amber-400">
+          <div class="bg-amber-100/80 font-extrabold text-slate-900 text-sm md:text-base border-b border-slate-800 p-2.5 text-center">
+            Joiner
+          </div>
+          <div data-slot="joiner" class="drop-zone p-2.5 flex-grow bg-slate-50 border-dashed border-2 border-slate-300 m-2 rounded flex flex-col items-center justify-center text-center">
+            <span class="drop-hint text-xs font-medium text-slate-400">Drop Joiner</span>
+          </div>
+        </div>
+
+        <!-- Column 5: Who -->
+        <div class="bg-amber-50/60 flex flex-col">
+          <div class="bg-amber-100/80 font-extrabold text-slate-900 text-sm md:text-base border-b border-slate-800 p-2.5 text-center">
+            Who
+          </div>
+          <div data-slot="who2" class="drop-zone p-2.5 flex-grow bg-slate-50 border-dashed border-2 border-slate-300 m-2 rounded flex flex-col items-center justify-center text-center">
+            <span class="drop-hint text-xs font-medium text-slate-400">Drop Who</span>
+          </div>
+        </div>
+
+        <!-- Column 6: Did what? -->
+        <div class="bg-amber-50/60 flex flex-col">
+          <div class="bg-amber-100/80 font-extrabold text-slate-900 text-sm md:text-base border-b border-slate-800 p-2.5 text-center">
+            Did what?
+          </div>
+          <div data-slot="didWhat2" class="drop-zone p-2.5 flex-grow bg-slate-50 border-dashed border-2 border-slate-300 m-2 rounded flex flex-col items-center justify-center text-center">
+            <span class="drop-hint text-xs font-medium text-slate-400">Drop Did what?</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ROW 3: Sentence Assembly Section -->
+    <div class="border-2 border-slate-800 rounded-md p-4 bg-slate-50 flex flex-col gap-2">
+      <div class="flex items-center justify-between">
+        <label for="final-sentence" class="font-extrabold text-xl text-slate-900">
+          Write it in a sentence:
+        </label>
+        <span class="text-xs font-bold text-slate-500 uppercase tracking-wide">Auto-Assembled</span>
+      </div>
+      <textarea id="final-sentence" rows="3" class="w-full p-3 rounded border-2 border-slate-400 font-semibold text-lg focus:outline-none focus:border-slate-800 bg-white text-slate-800" placeholder="Your summary sentence will build automatically as you place cards..."></textarea>
+    </div>
+
+  </main>
+
+  <!-- Feedback Toast Modal -->
+  <div id="feedback-modal" class="fixed bottom-6 left-1/2 -translate-x-1/2 hidden z-50">
+    <div id="feedback-content" class="px-6 py-4 rounded-xl shadow-2xl font-bold text-lg flex items-center gap-3 border-2">
+      <i id="feedback-icon" class="text-2xl"></i>
+      <span id="feedback-text"></span>
+    </div>
+  </div>
+
+  <script>
+    // Tiles tailored specifically to ESL Gist sentences for "The Lottery"
+    const TILES = [
+      // Who 1 & Who 2 options (all lowercase except proper nouns; two identical "the villagers" tiles included)
+      { id: 'w1', text: 'the villagers', category: ['who1', 'who2'] },
+      { id: 'w2', text: 'the villagers', category: ['who1', 'who2'] },
+      { id: 'w3', text: 'Tessie Hutchinson', category: ['who1', 'who2'] },
+      { id: 'w4', text: 'she', category: ['who1', 'who2'] },
+      { id: 'w5', text: 'they', category: ['who1', 'who2'] },
+
+      // Did what 1 options
+      { id: 'd1', text: 'gather', category: ['didWhat1'] },
+      { id: 'd2', text: 'hold a lottery', category: ['didWhat1', 'didWhat2'] },
+      { id: 'd3', text: 'is selected', category: ['didWhat1', 'didWhat2'] },
+      { id: 'd4', text: 'arrives late', category: ['didWhat1'] },
+
+      // When / Where options
+      { id: 'ww1', text: 'in the town square', category: ['whenWhere'] },
+      { id: 'ww2', text: 'on June 27th', category: ['whenWhere'] },
+
+      // Joiner options (Strictly ONLY because, and, then)
+      { id: 'j1', text: 'because', category: ['joiner'] },
+      { id: 'j2', text: 'and', category: ['joiner'] },
+      { id: 'j3', text: 'then', category: ['joiner'] },
+
+      // Did what 2 options
+      { id: 'd5', text: 'follow tradition', category: ['didWhat2'] },
+      { id: 'd6', text: 'kill Tessie Hutchinson', category: ['didWhat2'] },
+      { id: 'd7', text: 'wins the lottery', category: ['didWhat2'] },
+      { id: 'd8', text: 'kill someone', category: ['didWhat2'] }
+    ];
+
+    let currentPlacements = {
+      who1: null,
+      didWhat1: null,
+      whenWhere: null,
+      joiner: null,
+      who2: null,
+      didWhat2: null
+    };
+
+    const tileBank = document.getElementById('tile-bank');
+    const dropZones = document.querySelectorAll('.drop-zone');
+    const finalSentenceTextarea = document.getElementById('final-sentence');
+    const checkBtn = document.getElementById('check-btn');
+    const resetBtn = document.getElementById('reset-btn');
+    const feedbackModal = document.getElementById('feedback-modal');
+    const feedbackContent = document.getElementById('feedback-content');
+    const feedbackIcon = document.getElementById('feedback-icon');
+    const feedbackText = document.getElementById('feedback-text');
+
+    let draggedTile = null;
+
+    function renderWorksheet() {
+      tileBank.innerHTML = '';
+      Object.keys(currentPlacements).forEach(k => currentPlacements[k] = null);
+
+      dropZones.forEach(zone => {
+        const slotName = zone.dataset.slot;
+        zone.innerHTML = `<span class="drop-hint text-xs font-medium text-slate-400">Drop ${getLabelForSlot(slotName)}</span>`;
+      });
+
+      // Render draggable tiles into the tile bank
+      TILES.forEach(tile => {
+        const el = createTileElement(tile);
+        tileBank.appendChild(el);
+      });
+
+      updateSentence();
+    }
+
+    function getLabelForSlot(slot) {
+      switch(slot) {
+        case 'who1': return 'Who?';
+        case 'didWhat1': return 'Did what?';
+        case 'whenWhere': return 'When/where?';
+        case 'joiner': return 'Joiner';
+        case 'who2': return 'Who';
+        case 'didWhat2': return 'Did what?';
+        default: return 'card';
+      }
+    }
+
+    function createTileElement(tile) {
+      const div = document.createElement('div');
+      div.id = tile.id;
+      div.dataset.text = tile.text;
+      div.dataset.category = JSON.stringify(tile.category);
+      div.className = 'drag-tile bg-white border-2 border-slate-400 text-slate-900 font-bold px-3 py-1.5 rounded shadow-sm hover:border-slate-800 flex items-center gap-1.5 text-sm sm:text-base select-none';
+      div.draggable = true;
+      div.innerHTML = `<i class="fa-solid fa-grip-vertical text-slate-300 text-xs"></i> <span>${tile.text}</span>`;
+
+      // Drag events
+      div.addEventListener('dragstart', handleDragStart);
+      div.addEventListener('dragend', handleDragEnd);
+
+      // Touch events for mobile/Chromebooks
+      enableTouchDrag(div);
+
+      // Click to place option
+      div.addEventListener('click', () => {
+        if (!div.parentElement.classList.contains('drop-zone')) {
+          autoPlaceTile(div);
+        }
+      });
+
+      return div;
+    }
+
+    function handleDragStart(e) {
+      draggedTile = this;
+      e.dataTransfer.setData('text/plain', this.id);
+      setTimeout(() => this.classList.add('opacity-40'), 0);
+    }
+
+    function handleDragEnd() {
+      this.classList.remove('opacity-40');
+      draggedTile = null;
+    }
+
+    dropZones.forEach(zone => {
+      zone.addEventListener('dragover', e => {
+        e.preventDefault();
+        zone.classList.add('drag-over');
+      });
+
+      zone.addEventListener('dragleave', () => {
+        zone.classList.remove('drag-over');
+      });
+
+      zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('drag-over');
+        if (draggedTile) {
+          placeTileInZone(draggedTile, zone);
+        }
+      });
+    });
+
+    function placeTileInZone(tile, zone) {
+      const slot = zone.dataset.slot;
+      const categories = JSON.parse(tile.dataset.category || '[]');
+
+      // Check if slot accepts this category
+      if (categories.includes(slot)) {
+        // Return existing tile in slot to bank if present
+        const existingTile = zone.querySelector('.drag-tile');
+        if (existingTile) {
+          tileBank.appendChild(existingTile);
+          existingTile.classList.remove('placed');
+        }
+
+        const hint = zone.querySelector('.drop-hint');
+        if (hint) hint.style.display = 'none';
+
+        zone.appendChild(tile);
+        tile.classList.add('placed');
+        currentPlacements[slot] = tile.dataset.text;
+
+        updateSentence();
+      } else {
+        // Return to bank if invalid target slot
+        tileBank.appendChild(tile);
+        showToast(`This tile belongs in a "${categories.map(getLabelForSlot).join(' / ')}" box!`, 'warning');
+      }
+    }
+
+    function autoPlaceTile(tile) {
+      const categories = JSON.parse(tile.dataset.category || '[]');
+      for (let cat of categories) {
+        if (!currentPlacements[cat]) {
+          const zone = document.querySelector(`[data-slot="${cat}"]`);
+          if (zone) {
+            placeTileInZone(tile, zone);
+            return;
+          }
+        }
+      }
+      showToast('No open slot found for this card!', 'info');
+    }
+
+    function enableTouchDrag(el) {
+      el.addEventListener('touchstart', e => {
+        draggedTile = el;
+        el.style.zIndex = 1000;
+      }, { passive: true });
+
+      el.addEventListener('touchmove', e => {
+        if (!draggedTile) return;
+        const touch = e.touches[0];
+        el.style.position = 'fixed';
+        el.style.left = `${touch.clientX - 60}px`;
+        el.style.top = `${touch.clientY - 20}px`;
+      }, { passive: true });
+
+      el.addEventListener('touchend', e => {
+        if (!draggedTile) return;
+        el.style.position = '';
+        el.style.left = '';
+        el.style.top = '';
+        el.style.zIndex = '';
+
+        const touch = e.changedTouches[0];
+        const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+        const dropZone = targetElement?.closest('.drop-zone');
+
+        if (dropZone) {
+          placeTileInZone(el, dropZone);
+        } else {
+          tileBank.appendChild(el);
+          el.classList.remove('placed');
+          // Clear placement tracking if dragged out
+          Object.keys(currentPlacements).forEach(k => {
+            if (currentPlacements[k] === el.dataset.text) {
+              currentPlacements[k] = null;
+            }
+          });
+        }
+        draggedTile = null;
+        updateSentence();
+      });
+    }
+
+    function updateSentence() {
+      const slotsOrder = ['who1', 'didWhat1', 'whenWhere', 'joiner', 'who2', 'didWhat2'];
+      const words = slotsOrder.map(s => currentPlacements[s]).filter(Boolean);
+
+      if (words.length > 0) {
+        let sentence = words.join(' ');
+        // Capitalize first letter automatically for sentence start
+        sentence = sentence.charAt(0).toUpperCase() + sentence.slice(1);
+        // Ensure standard trailing period
+        if (!sentence.endsWith('.')) {
+          sentence += '.';
+        }
+        finalSentenceTextarea.value = sentence;
+      } else {
+        finalSentenceTextarea.value = '';
+      }
+    }
+
+    checkBtn.addEventListener('click', () => {
+      const placedCount = Object.values(currentPlacements).filter(Boolean).length;
+      if (placedCount === 6) {
+        showToast('Fantastic job! You completed your Gist sentence!', 'success');
+        confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+      } else {
+        showToast(`Great start! Fill all 6 boxes to complete the gist (${placedCount}/6 complete).`, 'info');
+      }
+    });
+
+    resetBtn.addEventListener('click', () => {
+      renderWorksheet();
+      showToast('Worksheet reset!', 'info');
+    });
+
+    function showToast(message, type) {
+      feedbackText.textContent = message;
+      feedbackModal.classList.remove('hidden');
+
+      if (type === 'success') {
+        feedbackContent.className = 'px-6 py-4 rounded-xl shadow-2xl font-bold text-lg flex items-center gap-3 border-2 bg-emerald-600 text-white border-emerald-400';
+        feedbackIcon.className = 'fa-solid fa-circle-check text-2xl';
+      } else if (type === 'warning') {
+        feedbackContent.className = 'px-6 py-4 rounded-xl shadow-2xl font-bold text-lg flex items-center gap-3 border-2 bg-amber-500 text-white border-amber-300';
+        feedbackIcon.className = 'fa-solid fa-triangle-exclamation text-2xl';
+      } else {
+        feedbackContent.className = 'px-6 py-4 rounded-xl shadow-2xl font-bold text-lg flex items-center gap-3 border-2 bg-slate-800 text-white border-slate-700';
+        feedbackIcon.className = 'fa-solid fa-info-circle text-2xl';
+      }
+
+      setTimeout(() => {
+        feedbackModal.classList.add('hidden');
+      }, 3000);
+    }
+
+    window.onload = renderWorksheet;
+  </script>
+</body>
+</html>
